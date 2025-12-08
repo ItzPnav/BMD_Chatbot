@@ -1,0 +1,33 @@
+services:
+  embeddings:
+    container_name: bmd_embeddings
+    build: ./embeddings
+    ports:
+      - "8001:8001"
+    volumes:
+      - C:/pnav/projects/MSME/infra/embeddings/models/bge-m3:/app/models/bge-m3:ro
+    environment:
+      - MODEL_PATH=/app/models/bge-m3
+      - POSTGRES_HOST=host.docker.internal
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=app_owner
+      - POSTGRES_PASSWORD=ChangeMe123!
+      - POSTGRES_DB=bmd_chatbot
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - bmd_network
+
+  reranker:
+    container_name: bmd_reranker
+    build: ./reranker
+    ports:
+      - "8002:8002"
+    environment:
+      - MODEL_NAME=BAAI/bge-reranker-base
+    networks:
+      - bmd_network
+
+networks:
+  bmd_network:
+    driver: bridge

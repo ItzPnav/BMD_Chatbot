@@ -1,0 +1,106 @@
+# ==========================================================
+# GLOBAL TEXT NORMALIZATION
+# Ensures consistent LF line endings across Windows/Mac/Linux
+# ==========================================================
+* text=auto eol=lf
+
+# ==========================================================
+# FILETYPE DIFF BEHAVIOR
+# ==========================================================
+
+# Markdown & documentation files → diff normally
+*.md text
+*.markdown text
+
+# Code files → normal diffs
+*.js text
+*.jsx text
+*.ts text
+*.tsx text
+*.json text
+*.css text
+*.html text
+*.yml text
+*.yaml text
+*.sql text
+*.env.example text
+
+# Treat shell/batch scripts as text
+*.sh text
+*.bat text
+*.cmd text
+
+# Python scripts in reranker service
+*.py text
+
+# SQL initialization files
+infra/postgres/*.sql text
+
+# ==========================================================
+# BINARY FILES → DO NOT DIFF
+# ==========================================================
+
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+
+# HuggingFace model files
+*.safetensors binary
+*.bin binary
+*.h5 binary
+*.pt binary
+*.pth binary
+
+# Fonts
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+
+# Archives
+*.zip binary
+*.tar binary
+*.gz binary
+*.7z binary
+
+# ==========================================================
+# GITHUB LINGUIST CONFIGURATION
+# Mark large, irrelevant, or auto-generated folders as vendored
+# so GitHub does NOT count them in language stats
+# ==========================================================
+
+# Model folders (do not count as repo code)
+infra/embeddings/** linguist-vendored
+infra/reranker/models/** linguist-vendored
+
+# Database data directory
+infra/pgsql/** linguist-vendored
+infra/postgres/** linguist-vendored
+
+# Backend large document dataset
+backend/data/** linguist-vendored
+
+# Documentation folder (optional)
+setups/** linguist-vendored
+
+# Frontend build output
+frontend/dist/** linguist-vendored
+
+# Node modules (massive folder)
+backend/node_modules/** linguist-vendored
+frontend/node_modules/** linguist-vendored
+
+# ==========================================================
+# MERGE STRATEGY TWEAKS
+# ==========================================================
+
+# Favor keeping both JSON entries during merge conflicts
+*.json merge=union
+
+# Do not attempt merge on binary files
+*.pdf -merge
+*.bin -merge
+*.safetensors -merge

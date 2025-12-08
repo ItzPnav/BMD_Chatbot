@@ -1,0 +1,18 @@
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+}
+
+.icon:hover {
+  transform: scale(1.06) translateY(-2px);
+}
+
+.icon:focus-visible {
+  outline: 2px solid var(--tiffany-blue);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
