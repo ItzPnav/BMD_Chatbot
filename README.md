@@ -35,14 +35,14 @@ Built for clarity, stability, and production-readiness.
 
 These are the recommended setup files for developers:
 
-👉 **[SETUP_INSTRUCTIONS.md](SETUP_INSTRUCTIONS.md)** – *Start here (exact installation order)*
-👉 [SETUP_COMPLETE.md](SETUP_COMPLETE.md)
-👉 [SETUP_DOCKER.md](SETUP_DOCKER.md)
-👉 [SETUP_PGSQL.md](SETUP_PGSQL.md)
-👉 [SETUP_EMBEDDINGS.md](SETUP_EMBEDDINGS.md)
-👉 [SETUP_RERANKER.md](SETUP_RERANKER.md)
-👉 [SETUP_BACKEND.md](SETUP_BACKEND.md)
-👉 [SETUP_FRONTEND.md](SETUP_FRONTEND.md)
+👉 **[SETUP_INSTRUCTIONS.md](setups/SETUP_INSTRUCTIONS.md)** – *Start here (exact installation order)*
+👉 [SETUP_COMPLETE.md](setups/SETUP_COMPLETE.md)
+👉 [SETUP_DOCKER.md](setups/SETUP_DOCKER.md)
+👉 [SETUP_PGSQL.md](setups/SETUP_PGSQL.md)
+👉 [SETUP_EMBEDDINGS.md](setups/SETUP_EMBEDDINGS.md)
+👉 [SETUP_RERANKER.md](setups/SETUP_RERANKER.md)
+👉 [SETUP_BACKEND.md](setups/SETUP_BACKEND.md)
+👉 [SETUP_FRONTEND.md](setups/SETUP_FRONTEND.md)
 
 ---
 
