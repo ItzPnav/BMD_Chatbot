@@ -46,7 +46,7 @@ These are the recommended setup files for developers:
 
 ---
 
-# 🐋** Setup _backend + embeddings + reranker + pgsql + frontend_ Without the need of DOCKER**
+# 🐋 Setup _backend + embeddings + reranker + pgsql + frontend_ Without the need of DOCKER
 
 👉 **[setup-backend-dockerless.md](setups/setup-backend-dockerless.md)** - _Use this document if you want to build the chatbot without Docker._
 
