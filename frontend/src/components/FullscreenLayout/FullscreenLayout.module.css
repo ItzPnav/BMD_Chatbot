@@ -77,13 +77,6 @@
   white-space: nowrap;
 }
 
-.chatItemId {
-  font-size: 0.75rem;
-  color: var(--dark-cyan);
-  margin-bottom: 4px;
-  font-family: monospace;
-}
-
 .chatItemSnippet {
   font-size: 0.8125rem;
   color: var(--dark-cyan);
@@ -216,44 +209,44 @@
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   color: var(--vanilla);
-  position: relative;
 }
 
 .messageActions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   margin-top: 12px;
   padding-top: 8px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .actionButton {
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-md);
-  padding: 8px 10px;
-  color: var(--vanilla);
+  background: transparent;
+  border-radius: 8px;
+  padding: 10px;
   cursor: pointer;
+  border: 1px solid rgba(255, 253, 253, 0.12);
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
   transition: all var(--transition-fast);
-  font-size: 0.8125rem;
-  opacity: 0.7;
 }
 
 .actionButton:hover {
-  background: rgba(0, 0, 0, 0.4);
-  border-color: var(--tiffany-blue);
-  opacity: 1;
-  transform: translateY(-1px);
+  background: white;
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
-.actionButton.active {
-  background: rgba(148, 210, 189, 0.2);
-  border-color: var(--tiffany-blue);
-  opacity: 1;
+.thumbsUpActive {
+  background: rgba(0, 212, 170, 0.20) !important;
+  border-color: #00d4aa !important;
+  color: #00d4aa !important;
+}
+
+.thumbsDownActive {
+  background: rgba(255, 107, 90, 0.20) !important;
+  border-color: #ff6b5a !important;
+  color: #ff6b5a !important;
 }
 
 .actionFeedback {
@@ -276,14 +269,6 @@
   justify-content: flex-end;
 }
 
-.messageTime {
-  opacity: 0.7;
-}
-
-.messageStatus {
-  opacity: 0.8;
-}
-
 .typingIndicator {
   display: flex;
   align-items: center;
@@ -292,7 +277,6 @@
 
 .typingWave {
   display: flex;
-  align-items: center;
   gap: 4px;
   height: 20px;
 }
@@ -303,26 +287,6 @@
   background: var(--tiffany-blue);
   border-radius: 2px;
   animation: typingWave 1.2s infinite ease-in-out;
-}
-
-.typingWave span:nth-child(1) {
-  animation-delay: 0s;
-}
-
-.typingWave span:nth-child(2) {
-  animation-delay: 0.1s;
-}
-
-.typingWave span:nth-child(3) {
-  animation-delay: 0.2s;
-}
-
-.typingWave span:nth-child(4) {
-  animation-delay: 0.3s;
-}
-
-.typingWave span:nth-child(5) {
-  animation-delay: 0.4s;
 }
 
 @keyframes typingWave {
@@ -353,7 +317,6 @@
   padding: 10px;
   border-radius: 6px;
   transition: all var(--transition-fast);
-  flex-shrink: 0;
 }
 
 .attachmentButton:hover {
@@ -372,14 +335,7 @@
   max-height: 200px;
   min-height: 50px;
   font-family: inherit;
-  overflow-y: auto;
   line-height: 1.5;
-}
-
-.input:focus {
-  outline: none;
-  border-color: var(--tiffany-blue);
-  box-shadow: 0 0 0 2px rgba(148, 210, 189, 0.2);
 }
 
 .sendButton {
@@ -387,13 +343,9 @@
   border: none;
   color: var(--rich-black);
   cursor: pointer;
-  padding: 14px 18px;
+  padding: 14px;
   border-radius: var(--radius-md);
   transition: all var(--transition-fast);
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .sendButton:hover:not(:disabled) {
@@ -416,16 +368,7 @@
   color: var(--dark-cyan);
 }
 
-.emptyState h2 {
-  font-size: 1.5rem;
-  font-weight: 500;
-}
-
 .mobileMenuButton {
-  display: none;
-}
-
-.mobileDrawerOverlay {
   display: none;
 }
 
@@ -441,65 +384,31 @@
     left: 20px;
     z-index: 1002;
     background: var(--glass-bg);
-    backdrop-filter: blur(8px);
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-md);
     padding: 12px;
     color: var(--vanilla);
-    font-size: 1.5rem;
-    cursor: pointer;
     box-shadow: var(--shadow-soft);
-  }
-
-  .mobileDrawerOverlay {
-    display: block;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
-    z-index: 1003;
-    animation: fadeIn 0.3s;
-  }
-
-  .mobileDrawer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    bottom: 0;
-    width: 280px;
-    background: rgba(0, 0, 0, 0.95);
-    border-right: 1px solid var(--glass-border);
-    animation: slideIn 0.3s;
-  }
-
-  @keyframes slideIn {
-    from {
-      transform: translateX(-100%);
-    }
-    to {
-      transform: translateX(0);
-    }
+    cursor: pointer;
   }
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+/* ==================================================== */
+/*        FINAL FIX: STOP ICON DISTORTION IN BUTTONS     */
+/* ==================================================== */
+
+.actionButton :global(.icon) {
+  transform: none !important;
 }
 
-@keyframes messageSlide {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.actionButton :global(.icon:hover) {
+  transform: none !important;
+}
+
+.actionButton :global(svg) {
+  width: 20px !important;
+  height: 20px !important;
+  stroke-width: 2 !important;
+  fill: none !important;
+  transform: none !important;
 }

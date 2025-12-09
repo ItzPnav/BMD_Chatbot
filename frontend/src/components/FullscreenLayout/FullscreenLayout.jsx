@@ -28,7 +28,7 @@ export const FullscreenLayout = ({
   const [menuOpen, setMenuOpen] = useState(null);
   const [showMobileDrawer, setShowMobileDrawer] = useState(false);
   const [copiedMessageId, setCopiedMessageId] = useState(null);
-  const [feedbackMessageId, setFeedbackMessageId] = useState(null);
+  const [messageFeedback, setMessageFeedback] = useState({});
   const [speakingMessageId, setSpeakingMessageId] = useState(null);
   const textareaRef = useRef(null);
   const messageRefs = useRef({});
@@ -264,19 +264,31 @@ export const FullscreenLayout = ({
   };
 
   /** Handle thumbs up feedback */
-  const handleThumbsUp = (messageId) => {
-    setFeedbackMessageId(messageId);
-    // TODO: Send feedback to backend
-    console.log('Thumbs up for message:', messageId);
-    setTimeout(() => setFeedbackMessageId(null), 2000);
+  const handleThumbsUp = async (messageId) => {
+    setMessageFeedback(prev => ({
+      ...prev,
+      [messageId]: prev[messageId] === 'like' ? null : 'like'
+    }));
+    try {
+      await chatAPI.submitFeedback(messageId, selectedSessionId, 'like');
+      console.log('Thumbs up for message:', messageId);
+    } catch (error) {
+      console.error('Failed to submit feedback:', error);
+    }
   };
 
   /** Handle thumbs down feedback */
-  const handleThumbsDown = (messageId) => {
-    setFeedbackMessageId(messageId);
-    // TODO: Send feedback to backend
-    console.log('Thumbs down for message:', messageId);
-    setTimeout(() => setFeedbackMessageId(null), 2000);
+  const handleThumbsDown = async (messageId) => {
+    setMessageFeedback(prev => ({
+      ...prev,
+      [messageId]: prev[messageId] === 'dislike' ? null : 'dislike'
+    }));
+    try {
+      await chatAPI.submitFeedback(messageId, selectedSessionId, 'dislike');
+      console.log('Thumbs down for message:', messageId);
+    } catch (error) {
+      console.error('Failed to submit feedback:', error);
+    }
   };
 
   /** Handle try again - regenerate response */
@@ -521,7 +533,7 @@ export const FullscreenLayout = ({
                           </button>
                           
                           <button
-                            className={`${styles.actionButton} ${feedbackMessageId === msg.id ? styles.active : ''}`}
+                            className={`${styles.actionButton} ${messageFeedback[msg.id] === 'like' ? styles.thumbsUpActive : ''}`}
                             onClick={() => handleThumbsUp(msg.id)}
                             title="Good response"
                             aria-label="Thumbs up"
@@ -532,7 +544,7 @@ export const FullscreenLayout = ({
                           </button>
                           
                           <button
-                            className={`${styles.actionButton} ${feedbackMessageId === msg.id ? styles.active : ''}`}
+                            className={`${styles.actionButton} ${messageFeedback[msg.id] === 'dislike' ? styles.thumbsDownActive : ''}`}
                             onClick={() => handleThumbsDown(msg.id)}
                             title="Bad response"
                             aria-label="Thumbs down"

@@ -1,3 +1,4 @@
+/* === ORIGINAL FILE (FULL) === */
 .popupOverlay {
   position: fixed;
   top: 0;
@@ -347,11 +348,6 @@
   box-shadow: 0 0 0 2px rgba(148, 210, 189, 0.2);
 }
 
-.input:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 .sendButton {
   background: linear-gradient(135deg, var(--gamboge), var(--alloy-orange));
   border: none;
@@ -386,31 +382,31 @@
 }
 
 .actionButton {
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-md);
-  padding: 8px 10px;
-  color: var(--vanilla);
+  background: transparent;
+  border-radius: 8px;
+  padding: 10px;
   cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.12);
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
   transition: all var(--transition-fast);
-  font-size: 0.8125rem;
-  opacity: 0.7;
 }
 
 .actionButton:hover {
-  background: rgba(0, 0, 0, 0.4);
-  border-color: var(--tiffany-blue);
-  opacity: 1;
-  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.1);
 }
 
-.actionButton.active {
-  background: rgba(148, 210, 189, 0.2);
-  border-color: var(--tiffany-blue);
-  opacity: 1;
+.thumbsUpActive {
+  background: rgba(0, 212, 170, 0.2) !important;
+  border-color: #00d4aa !important;
+  color: #00d4aa !important;
+}
+
+.thumbsDownActive {
+  background: rgba(255, 107, 90, 0.2) !important;
+  border-color: #ff6b5a !important;
+  color: #ff6b5a !important;
 }
 
 .actionFeedback {
@@ -420,10 +416,17 @@
   font-size: 0.75rem;
 }
 
+.messageMeta {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: var(--dark-cyan);
+}
+
 @media (max-width: 768px) {
   .popupOverlay {
     padding: 0;
-    align-items: flex-end;
   }
 
   .popup {
@@ -432,4 +435,24 @@
     height: calc(100vh - 20px);
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   }
+}
+
+/* ============================================= */
+/* FINAL FIX: STOP ICON DISTORTION IN ACTION BUTTONS */
+/* ============================================= */
+
+.actionButton :global(.icon) {
+  transform: none !important;
+}
+
+.actionButton :global(.icon:hover) {
+  transform: none !important;
+}
+
+.actionButton :global(svg) {
+  width: 20px !important;
+  height: 20px !important;
+  stroke-width: 2 !important;
+  fill: none !important;
+  transform: none !important;
 }

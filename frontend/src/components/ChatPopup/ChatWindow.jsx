@@ -17,6 +17,7 @@ export const ChatWindow = ({
   onThumbsDown,
   copiedMessageId,
   feedbackMessageId,
+  messageRatings = {},
   messageRefs
 }) => {
   const [input, setInput] = useState('');
@@ -101,9 +102,9 @@ export const ChatWindow = ({
                   </button>
 
                   <button
-                    className={`${styles.actionButton} ${feedbackMessageId === msg.id ? styles.active : ''}`}
+                    className={`${styles.actionButton} ${messageRatings[msg.id] === 'like' ? styles.permanentActive : ''}`}
                     onClick={() => onThumbsUp(msg.id)}
-                    title="Good response"
+                    title={messageRatings[msg.id] === 'like' ? "Remove thumbs up" : "Good response"}
                     aria-label="Thumbs up"
                   >
                     <Icon size={18}>
@@ -112,9 +113,9 @@ export const ChatWindow = ({
                   </button>
 
                   <button
-                    className={`${styles.actionButton} ${feedbackMessageId === msg.id ? styles.active : ''}`}
+                    className={`${styles.actionButton} ${messageRatings[msg.id] === 'dislike' ? styles.permanentActive : ''}`}
                     onClick={() => onThumbsDown(msg.id)}
-                    title="Bad response"
+                    title={messageRatings[msg.id] === 'dislike' ? "Remove thumbs down" : "Bad response"}
                     aria-label="Thumbs down"
                   >
                     <Icon size={18}>

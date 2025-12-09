@@ -106,4 +106,87 @@ router.get('/chat/analytics', async (req, res) => {
   }
 });
 
+/** ADD FEEDBACK RATING → POST /api/chat/feedback */
+router.post('/chat/feedback', async (req, res) => {
+  try {
+    const { messageId, sessionId, ratingType } = req.body;
+
+    if (!messageId || !sessionId || !ratingType) {
+      return res.status(400).json({
+        success: false,
+        message: "messageId, sessionId, and ratingType are required"
+      });
+    }
+
+    if (!['like', 'dislike'].includes(ratingType)) {
+      return res.status(400).json({
+        success: false,
+        message: "ratingType must be 'like' or 'dislike'"
+      });
+    }
+
+    const rating = await chatHistoryService.saveFeedbackRating(messageId, sessionId, ratingType);
+
+    return res.json({
+      success: true,
+      message: "Feedback rating saved",
+      rating
+    });
+  } catch (err) {
+    console.error("❌ Save feedback error:", err);
+    return res.status(500).json({
+      success: false,
+      message: err.message || "Failed to save feedback rating"
+    });
+  }
+});
+
+/** REMOVE FEEDBACK RATING → DELETE /api/chat/feedback */
+router.delete('/chat/feedback', async (req, res) => {
+  try {
+    const { messageId, ratingType } = req.body;
+
+    if (!messageId || !ratingType) {
+      return res.status(400).json({
+        success: false,
+        message: "messageId and ratingType are required"
+      });
+    }
+
+    if (!['like', 'dislike'].includes(ratingType)) {
+      return res.status(400).json({
+        success: false,
+        message: "ratingType must be 'like' or 'dislike'"
+      });
+    }
+
+    await chatHistoryService.removeFeedbackRating(messageId, ratingType);
+
+    return res.json({
+      success: true,
+      message: "Feedback rating removed"
+    });
+  } catch (err) {
+    console.error("❌ Remove feedback error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to remove feedback rating"
+    });
+  }
+});
+
+/** GET MESSAGE RATINGS → GET /api/chat/feedback/:messageId */
+router.get('/chat/feedback/:messageId', async (req, res) => {
+  try {
+    const ratings = await chatHistoryService.getMessageRatings(req.params.messageId);
+    return res.json(ratings);
+  } catch (err) {
+    console.error("❌ Get feedback error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to load feedback ratings"
+    });
+  }
+});
+
 export default router;

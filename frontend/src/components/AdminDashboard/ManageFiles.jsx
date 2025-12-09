@@ -8,7 +8,7 @@ import { TrashIcon, RefreshIcon } from "../../assets/icons";
 export default function ManageFiles() {
   const [files, setFiles] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 6;
 
   // LOAD FILE LIST
   const loadFiles = async () => {
@@ -143,6 +143,8 @@ export default function ManageFiles() {
         <button
           disabled={currentPage === 1}
           onClick={() => setCurrentPage((p) => p - 1)}
+          className={styles.paginationButton}
+          title="Previous page"
         >
           ←
         </button>
@@ -154,6 +156,8 @@ export default function ManageFiles() {
         <button
           disabled={currentPage * itemsPerPage >= files.length}
           onClick={() => setCurrentPage((p) => p + 1)}
+          className={styles.paginationButton}
+          title="Next page"
         >
           →
         </button>

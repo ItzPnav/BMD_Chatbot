@@ -211,6 +211,69 @@ export const chatAPI = {
       console.error('Failed to load analytics:', error);
       return null;
     }
+  },
+
+  /**
+   * Save feedback rating for a message
+   */
+  saveFeedbackRating: async (messageId, sessionId, ratingType) => {
+    try {
+      const response = await api.post('/api/chat/feedback', {
+        messageId,
+        sessionId,
+        ratingType
+      });
+      return response;
+    } catch (error) {
+      console.error('Failed to save feedback rating:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Remove feedback rating from a message
+   */
+  removeFeedbackRating: async (messageId, ratingType) => {
+    try {
+      const response = await api.delete('/api/chat/feedback', {
+        messageId,
+        ratingType
+      });
+      return response;
+    } catch (error) {
+      console.error('Failed to remove feedback rating:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get feedback ratings for a message
+   */
+  getMessageRatings: async (messageId) => {
+    try {
+      return await api.get(`/api/chat/feedback/${messageId}`);
+    } catch (error) {
+      console.error('Failed to load message ratings:', error);
+      return [];
+    }
+  },
+
+  /**
+   * Submit feedback for a message (thumbs up/down)
+   * Accepts rating_type: 'like' or 'dislike'
+   */
+  submitFeedback: async (messageId, sessionId, ratingType) => {
+    try {
+      const response = await api.post('/api/chat/feedback', {
+        messageId,
+        sessionId,
+        ratingType
+      });
+      return response;
+    } catch (error) {
+      console.error('Failed to submit feedback:', error);
+      throw error;
+    }
   }
 };
 

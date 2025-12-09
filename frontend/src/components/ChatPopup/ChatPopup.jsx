@@ -26,6 +26,7 @@ export const ChatPopup = ({
   const [selectedChatId, setSelectedChatId] = useState(currentChatId);
   const [copiedMessageId, setCopiedMessageId] = useState(null);
   const [feedbackMessageId, setFeedbackMessageId] = useState(null);
+  const [messageRatings, setMessageRatings] = useState({});
   const messageRefs = useRef({});
 
   useEffect(() => {
@@ -60,6 +61,38 @@ export const ChatPopup = ({
       setMessages([]);
     } finally {
       setLoading(false);
+    }
+
+    // Load existing feedback ratings for messages
+    loadMessageRatings(id);
+  };
+
+  /** Load existing feedback ratings for messages in a session */
+  const loadMessageRatings = async (sessionId) => {
+    if (!sessionId) return;
+
+    try {
+      const sessionMessages = await chatAPI.getMessages(sessionId);
+      const ratings = {};
+
+      // Load ratings for each assistant message
+      for (const msg of sessionMessages) {
+        if (msg.role === 'assistant') {
+          try {
+            const msgRatings = await chatAPI.getMessageRatings(msg.id);
+            if (msgRatings.length > 0) {
+              ratings[msg.id] = msgRatings[0].rating_type;
+            }
+          } catch (error) {
+            // Ignore individual message rating errors
+            console.warn(`Failed to load ratings for message ${msg.id}:`, error);
+          }
+        }
+      }
+
+      setMessageRatings(ratings);
+    } catch (error) {
+      console.error('Failed to load message ratings:', error);
     }
   };
 
@@ -168,19 +201,63 @@ export const ChatPopup = ({
   };
 
   /** Handle thumbs up feedback */
-  const handleThumbsUp = (messageId) => {
-    setFeedbackMessageId(messageId);
-    // TODO: Send feedback to backend
-    console.log('Thumbs up for message:', messageId);
-    setTimeout(() => setFeedbackMessageId(null), 2000);
+  const handleThumbsUp = async (messageId) => {
+    try {
+      setFeedbackMessageId(messageId);
+
+      const currentRating = messageRatings[messageId];
+
+      if (currentRating === 'like') {
+        // Already liked, remove the rating
+        await chatAPI.removeFeedbackRating(messageId, 'like');
+        setMessageRatings(prev => ({
+          ...prev,
+          [messageId]: null
+        }));
+      } else {
+        // Add or switch to like rating
+        await chatAPI.saveFeedbackRating(messageId, selectedChatId, 'like');
+        setMessageRatings(prev => ({
+          ...prev,
+          [messageId]: 'like'
+        }));
+      }
+
+      setTimeout(() => setFeedbackMessageId(null), 2000);
+    } catch (error) {
+      console.error('Failed to save thumbs up feedback:', error);
+      setFeedbackMessageId(null);
+    }
   };
 
   /** Handle thumbs down feedback */
-  const handleThumbsDown = (messageId) => {
-    setFeedbackMessageId(messageId);
-    // TODO: Send feedback to backend
-    console.log('Thumbs down for message:', messageId);
-    setTimeout(() => setFeedbackMessageId(null), 2000);
+  const handleThumbsDown = async (messageId) => {
+    try {
+      setFeedbackMessageId(messageId);
+
+      const currentRating = messageRatings[messageId];
+
+      if (currentRating === 'dislike') {
+        // Already disliked, remove the rating
+        await chatAPI.removeFeedbackRating(messageId, 'dislike');
+        setMessageRatings(prev => ({
+          ...prev,
+          [messageId]: null
+        }));
+      } else {
+        // Add or switch to dislike rating
+        await chatAPI.saveFeedbackRating(messageId, selectedChatId, 'dislike');
+        setMessageRatings(prev => ({
+          ...prev,
+          [messageId]: 'dislike'
+        }));
+      }
+
+      setTimeout(() => setFeedbackMessageId(null), 2000);
+    } catch (error) {
+      console.error('Failed to save thumbs down feedback:', error);
+      setFeedbackMessageId(null);
+    }
   };
 
   if (!isOpen) return null;
@@ -211,6 +288,7 @@ export const ChatPopup = ({
               onThumbsDown={handleThumbsDown}
               copiedMessageId={copiedMessageId}
               feedbackMessageId={feedbackMessageId}
+              messageRatings={messageRatings}
               messageRefs={messageRefs}
             />
           </div>
