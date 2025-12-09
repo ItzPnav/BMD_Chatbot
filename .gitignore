@@ -112,3 +112,5 @@ frontend_start.bat
 frontend_struct.txt
 kill_port_4455.bat
 psql_conn.bat
+
+docs
