@@ -1,7 +1,5 @@
 # 🚀 BMD Chatbot — Team Runbook (bge-small, 384-dim)
 
-> **Audience:** Internal dev team
->
 > **Purpose:** This document explains **exactly how to run, understand, and maintain** the BMD Chatbot using **bge-small embeddings (384-dim)**.
 >
 > This is the **authoritative guide**. Follow this and the system will work.
@@ -127,20 +125,20 @@ backend/.env.server
 ### 5.2 `.env.server` (server-ready)
 
 ```env
-PORT=4455
+PORT=4455 #change if needed
 NODE_ENV=production
 
 DB_HOST=localhost
-DB_PORT=5432
-DB_USER=app_owner
-DB_PASSWORD=ChangeMe123!
+DB_PORT=5432 #change if needed
+DB_USER=app_owner #Database user
+DB_PASSWORD=ChangeMe123! #Database password
 DB_NAME=bmd_chatbot
 
 EMBEDDINGS_SERVICE_URL=http://localhost:8088
 RERANKER_SERVICE_URL=http://localhost:8091
 
-ANTHROPIC_API_KEY=sk-REPLACE_ME
-ANTHROPIC_MODEL=claude-sonnet-4-5-20250929
+ANTHROPIC_API_KEY=sk-REPLACE_ME_WITH_YOUR_API_KEY #your Claude API key
+ANTHROPIC_MODEL=claude-sonnet-4-5-20250929 #Claude model name
 
 EMBEDDING_DIM=384
 
@@ -280,19 +278,16 @@ Expected:
 
 ---
 
-## 1️⃣2️⃣ What NOT to worry about
+### Test chat endpoint
 
-- Resilience
-- Autoscaling
-- Failover
-- Load balancing
-
-Those are **maintenance concerns** and intentionally out of scope.
+```bash
+curl -X POST http://localhost:4455/api/chat -H "Content-Type: application/json" -d '{"message":"Hello"}'
+``` 
+Expected: a JSON response with an answer.
 
 ---
 
-## 1️⃣3️⃣ Final note
-
+## 1️⃣2️⃣ Final Notes
 This chatbot has been:
 - Architected
 - Implemented
@@ -302,7 +297,4 @@ The remaining responsibility is **operation & maintenance**, not development.
 
 If this document is followed, the system will run correctly.
 
----
-
-✅ **End of runbook**
 
