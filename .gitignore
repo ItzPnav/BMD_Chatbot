@@ -15,7 +15,7 @@ pnpm-debug.log*
 lerna-debug.log*
 
 # ==================================================
-# ENVIRONMENT FILES
+# ENVIRONMENT FILES (NEVER COMMIT SECRETS)
 # ==================================================
 .env
 .env.local
@@ -24,25 +24,25 @@ backend/.env
 frontend/.env
 
 # ==================================================
-# BACKEND
+# BACKEND (BUILD + RUNTIME)
 # ==================================================
 backend/node_modules/
 backend/dist/
 backend/.cache/
 backend/tmp/
 
-# Backend data (DO NOT UPLOAD THESE!)
+# Backend runtime data (DO NOT COMMIT)
 backend/data/documents/
 backend/data/history/
 backend/data/package/
 
-# Test files (optional)
+# Backend test artifacts (local only)
 backend/test-*.js
 backend/test.pdf
 backend/testPgvector.js
 
 # ==================================================
-# FRONTEND
+# FRONTEND (BUILD + CACHE)
 # ==================================================
 frontend/node_modules/
 frontend/dist/
@@ -52,31 +52,32 @@ frontend/build/
 frontend/coverage/
 
 # ==================================================
-# INFRA
+# INFRA — POSTGRES
 # ==================================================
-# Docker DB volume
-infra/pgsql/
-infra/postgres/
-infra/pgsql/data/
+# 🚫 NEVER COMMIT DATABASE RUNTIME DATA
 infra/postgres/data/
+infra/pgsql/data/
 
-# HuggingFace local models (VERY LARGE, DO NOT TRACK!)
-infra/embeddings/models/bge-m3/
-infra/reranker/models/bge-reranker/
+# ==================================================
+# INFRA — EMBEDDINGS / RERANKER
+# ==================================================
+# HuggingFace model files (VERY LARGE)
+infra/embeddings/models/
+infra/reranker/models/
 
-# Python environment (for reranker service)
+# Python caches
 infra/reranker/__pycache__/
 infra/reranker/*.pyc
 infra/reranker/.pytest_cache/
 
-# Docker artifacts
+# ==================================================
+# DOCKER / PROCESS ARTIFACTS
+# ==================================================
 *.pid
 docker/*.log
 
-
-
 # ==================================================
-# IDE FILES
+# IDE / EDITOR FILES
 # ==================================================
 .vscode/
 .idea/
@@ -99,13 +100,17 @@ temp/
 .cache/
 .cache-loader/
 
-# Package managers (optional)
-# (remove if you want to track lock file)
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
+# ==================================================
+# PACKAGE MANAGER LOCKS (OPTIONAL)
+# ==================================================
+# Uncomment ONLY if you want to track lock files
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
 
-
+# ==================================================
+# LOCAL SCRIPTS / NOTES
+# ==================================================
 backend_start.bat
 backend_struct.txt
 frontend_start.bat
@@ -113,4 +118,21 @@ frontend_struct.txt
 kill_port_4455.bat
 psql_conn.bat
 
+# ==================================================
+# DOCS (Has all the required backend files)
+# ==================================================
 docs
+
+
+
+# ==================================================
+# ENVIRONMENT FILES (NEVER COMMIT SECRETS)
+# ==================================================
+.env
+.env.local
+.env.server
+.env.*.local
+backend/.env
+backend/.env.local
+backend/.env.server
+frontend/.env

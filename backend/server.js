@@ -1,156 +1,187 @@
+// backend/server.js
+
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
+
 import chatRoutes from './src/routes/chatRoutes.js';
 import documentRoutes from './src/routes/documentRoutes.js';
+import adminRoutes from './src/routes/adminRoutes.js';
+
 import pool from './src/config/database.js';
 import embeddingService from './src/services/embeddingService.js';
 import rerankerService from './src/services/rerankerService.js';
 
-dotenv.config();
-
 const app = express();
 const PORT = process.env.PORT || 4455;
 
-// Middleware
+/* ======================================================
+   🚀 STARTUP SUMMARY (READ THIS FIRST)
+   ====================================================== */
+
+console.log("\n═══════════════════════════════════════════════");
+console.log("🚀 BMD Chatbot Backend Starting");
+console.log("═══════════════════════════════════════════════");
+console.log(`🧩 Environment        : ${process.env.NODE_ENV}`);
+console.log(`🧠 Embedding Dimension: ${process.env.EMBEDDING_DIM}`);
+console.log(`🔍 Search Top-K        : ${process.env.SEARCH_TOP_K}`);
+console.log(`🎯 Search Threshold   : ${process.env.SEARCH_THRESHOLD}`);
+console.log(`📦 Embeddings Service : ${process.env.EMBEDDINGS_SERVICE_URL}`);
+console.log(`📊 Reranker Service   : ${process.env.RERANKER_SERVICE_URL}`);
+console.log("═══════════════════════════════════════════════\n");
+
+/* ======================================================
+   🧩 MIDDLEWARE
+   ====================================================== */
+
 app.use(cors());
 
 app.use(express.json({
-  strict: false,    // allow invalid JSON
-  type: 'application/json',
+  strict: false,
   limit: '5mb'
 }));
 
+app.use(express.urlencoded({ extended: true }));
 
-// -----------------------------------------------------------
-// CLEAN LOGGING MIDDLEWARE
-// -----------------------------------------------------------
+/* ======================================================
+   📌 CLEAN REQUEST LOGGING (ONE LINE PER REQUEST)
+   ====================================================== */
+
 app.use((req, res, next) => {
   const start = Date.now();
 
   res.on("finish", () => {
-    const time = Date.now() - start;
+    const duration = Date.now() - start;
 
-    let label = "API";
-    const url = req.url;
+    let tag = "API";
+    const url = req.originalUrl;
 
-    if (url.startsWith("/api/documents/upload")) label = "UPLOAD";
-    else if (url.startsWith("/api/documents/process")) label = "EMBEDDINGS";
-    else if (url.startsWith("/api/documents/search")) label = "SEARCH";
-    else if (url.startsWith("/api/documents")) label = "DOCUMENTS";
-    else if (url.startsWith("/api/chat")) label = "CHAT";
+    if (url.startsWith("/api/chat")) tag = "CHAT";
+    else if (url.startsWith("/api/documents/upload")) tag = "UPLOAD";
+    else if (url.startsWith("/api/documents/process")) tag = "EMBEDDINGS";
+    else if (url.startsWith("/api/documents")) tag = "DOCUMENTS";
+    else if (url.startsWith("/api/admin")) tag = "ADMIN";
+    else if (url.startsWith("/api/health")) tag = "HEALTH";
 
     console.log(
-      `📌 [${label}] ${req.method} ${req.url} | ${res.statusCode} | ${time}ms`
+      `📌 [${tag}] ${req.method} ${url} → ${res.statusCode} (${duration}ms)`
     );
   });
 
   next();
 });
 
+/* ======================================================
+   🧯 INVALID JSON HANDLER
+   ====================================================== */
 
 app.use((err, req, res, next) => {
   if (err instanceof SyntaxError && 'body' in err) {
-    console.warn("⚠️ Ignored invalid JSON body");
-    return res.status(400).json({ error: "Invalid JSON" });
+    console.warn("⚠️ Invalid JSON body received");
+    return res.status(400).json({ error: "Invalid JSON body" });
   }
   next();
 });
 
+/* ======================================================
+   🛣️ ROUTES
+   ====================================================== */
 
-app.use(express.urlencoded({ extended: true }));
-
-// Request logging
-app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
-  next();
-});
-
-// FIXED: Mount chat routes at /api (NOT /api/chat)
+// Chat routes mounted at /api
 app.use('/api', chatRoutes);
 
-// Document routes stay the same
+// Document routes
 app.use('/api/documents', documentRoutes);
 
-// Root endpoint
+// Admin routes
+app.use('/api/admin', adminRoutes);
+
+/* ======================================================
+   🏠 ROOT
+   ====================================================== */
+
 app.get('/', (req, res) => {
   res.json({
     service: 'BMD Chatbot API',
-    version: '1.0.0',
     status: 'running',
+    environment: process.env.NODE_ENV,
     endpoints: {
       chat: '/api/chat',
       documents: '/api/documents',
+      admin: '/api/admin',
       health: '/api/health'
     }
   });
 });
 
-// Health check endpoint
+/* ======================================================
+   ❤️ HEALTH CHECK
+   ====================================================== */
+
 app.get('/api/health', async (req, res) => {
   try {
     await pool.query('SELECT 1');
-    const dbHealthy = true;
 
     const embeddingsHealthy = await embeddingService.healthCheck();
     const rerankerHealthy = await rerankerService.healthCheck();
 
-    const allHealthy = dbHealthy && embeddingsHealthy && rerankerHealthy;
+    const healthy = embeddingsHealthy && rerankerHealthy;
 
-    res.status(allHealthy ? 200 : 503).json({
-      status: allHealthy ? 'healthy' : 'degraded',
+    res.status(healthy ? 200 : 503).json({
+      status: healthy ? "healthy" : "degraded",
       services: {
-        database: dbHealthy ? 'connected' : 'disconnected',
-        embeddings: embeddingsHealthy ? 'connected' : 'disconnected',
-        reranker: rerankerHealthy ? 'connected' : 'disconnected'
+        database: "connected",
+        embeddings: embeddingsHealthy ? "connected" : "down",
+        reranker: rerankerHealthy ? "connected" : "down"
       },
       timestamp: new Date().toISOString()
     });
   } catch (error) {
+    console.error("❌ Health check failed:", error.message);
     res.status(503).json({
-      status: 'unhealthy',
-      error: error.message,
-      timestamp: new Date().toISOString()
+      status: "unhealthy",
+      error: error.message
     });
   }
 });
 
-// 404 handler
+/* ======================================================
+   ❌ 404 HANDLER
+   ====================================================== */
+
 app.use((req, res) => {
-  res.status(404).json({ error: 'Route not found' });
+  res.status(404).json({ error: "Route not found" });
 });
 
-// Error handler
+/* ======================================================
+   🚨 GLOBAL ERROR HANDLER
+   ====================================================== */
+
 app.use((err, req, res, next) => {
-  console.error('Error:', err);
+  console.error("❌ Unhandled error:", err);
   res.status(500).json({
-    error: 'Internal server error',
+    error: "Internal server error",
     message: err.message
   });
 });
 
-// Start server
+/* ======================================================
+   ▶️ START SERVER
+   ====================================================== */
+
 app.listen(PORT, () => {
-  console.log(`
-╔═══════════════════════════════════════════════════════════════╗
-║                                                               ║
-║                  BMD Chatbot API Server                       ║
-║                                                               ║
-║        Server running on port ${PORT}                            ║
-║        Environment: ${process.env.NODE_ENV || 'development'}                               ║
-║                                                               ║
-║        Endpoints:                                             ║
-║        • http://localhost:${PORT}/api/chat                       ║
-║        • http://localhost:${PORT}/api/documents                  ║
-║        • http://localhost:${PORT}/api/health                     ║
-║                                                               ║
-╚═══════════════════════════════════════════════════════════════╝
-  `);
+  console.log("═══════════════════════════════════════════════");
+  console.log(`✅ Server is live`);
+  console.log(`🌐 URL        : http://localhost:${PORT}`);
+  console.log(`🧪 Health     : http://localhost:${PORT}/api/health`);
+  console.log("═══════════════════════════════════════════════\n");
 });
 
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM signal received: closing HTTP server');
-  pool.end();
+/* ======================================================
+   🛑 GRACEFUL SHUTDOWN
+   ====================================================== */
+
+process.on('SIGTERM', async () => {
+  console.log("🛑 SIGTERM received — shutting down gracefully...");
+  await pool.end();
   process.exit(0);
 });

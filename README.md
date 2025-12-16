@@ -46,10 +46,15 @@ These are the recommended setup files for developers:
 
 ---
 
-# 🐋 Setup _backend + embeddings + reranker + pgsql + frontend_ Without the need of DOCKER
+# 🐋 Setup _backend + embeddings + reranker + pgsql + frontend_ Without the need of DOCKER (1024 dims)
 
-👉 **[setup-backend-dockerless.md](setups/setup-backend-dockerless.md)** - _Use this document if you want to build the chatbot without Docker._
+👉 **[setup-backend-dockerless.md](setups/setup-backend-dockerless.md)** - _Use this document if you want to build the chatbot without Docker for 1024 dims._
 
+---
+
+# 🐋❌ Setup backend with different bge embeddings model (bge-small) _384 Dimensions_ === No need for Docker 
+
+👉 **[run_bmd_chatbot_bge_small.md](setups/run_bmd_chatbot_bge_small.md)** - _Use this document if you want to build the chatbot without Docker for 384 dims._
 
 ---
 # 🧠 **Architecture**

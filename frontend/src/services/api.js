@@ -398,6 +398,19 @@ export const adminAPI = {
       console.error('Failed to load chats:', error);
       return [];
     }
+  },
+
+  resetDatabase: async () => {
+    try {
+      const response = await api.post('/api/admin/reset');
+      if (response.success) {
+        return response;
+      }
+      throw new Error(response.message || 'Reset failed');
+    } catch (error) {
+      console.error('Failed to reset database:', error);
+      throw error;
+    }
   }
 };
 

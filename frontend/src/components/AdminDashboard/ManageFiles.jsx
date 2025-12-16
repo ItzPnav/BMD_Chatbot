@@ -8,6 +8,7 @@ import { TrashIcon, RefreshIcon } from "../../assets/icons";
 export default function ManageFiles() {
   const [files, setFiles] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isResetting, setIsResetting] = useState(false);
   const itemsPerPage = 6;
 
   // LOAD FILE LIST
@@ -62,6 +63,30 @@ export default function ManageFiles() {
       console.error("Process error:", err);
       // Still refresh even on error
       loadFiles();
+    }
+  };
+
+  // RESET DATABASE
+  const handleResetDatabase = async () => {
+    const confirmed = window.confirm(
+      "⚠️ WARNING: This will DELETE ALL FILES and RESET the database tables.\n\nThis action CANNOT be undone. Are you sure?"
+    );
+
+    if (!confirmed) return;
+
+    setIsResetting(true);
+    try {
+      const result = await adminAPI.resetDatabase();
+      if (result && result.success) {
+        alert("✅ Database reset successfully!");
+        loadFiles(); // Reload file list
+        setCurrentPage(1); // Reset pagination
+      }
+    } catch (err) {
+      console.error("Reset error:", err);
+      alert("❌ Failed to reset database: " + (err.message || "Unknown error"));
+    } finally {
+      setIsResetting(false);
     }
   };
 
@@ -135,7 +160,17 @@ export default function ManageFiles() {
 
   return (
     <div className={styles.container}>
-      <h2>Manage Files</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <h2>Manage Files</h2>
+        <button
+          onClick={handleResetDatabase}
+          disabled={isResetting}
+          className={styles.resetButton}
+          title="Reset all files and database"
+        >
+          {isResetting ? "Resetting..." : "🔄 Reset All"}
+        </button>
+      </div>
       <Table data={paginatedFiles} columns={columns} />
 
       {/* Pagination */}

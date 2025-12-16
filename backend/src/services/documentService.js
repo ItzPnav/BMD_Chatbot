@@ -19,11 +19,6 @@ class DocumentService {
     return result.rows[0];
   }
 
-  /**
-   * List all documents.
-   * Uses a performant per-row COUNT(*) subquery to get embedding counts:
-   * SELECT COUNT(*) FROM embeddings WHERE document_id = d.id
-   */
   async getAllDocuments() {
     const result = await db.query(
       `SELECT
@@ -34,22 +29,18 @@ class DocumentService {
         d.file_type,
         LENGTH(d.content) as content_size,
         (SELECT COUNT(*) FROM embeddings e WHERE e.document_id = d.id) AS chunk_count
-     FROM documents d
-     ORDER BY d.upload_date DESC`
+      FROM documents d
+      ORDER BY d.upload_date DESC`
     );
 
-    // Map backend rows to frontend-friendly format
     return result.rows.map((row) => {
-      // Get file size from actual file if it exists
       let fileSize = 0;
       try {
         const filePath = path.join(documentsDir, row.category, row.filename);
         if (fs.existsSync(filePath)) {
           fileSize = fs.statSync(filePath).size;
         }
-      } catch (error) {
-        console.warn(`Could not get file size for ${row.filename}:`, error.message);
-      }
+      } catch {}
 
       return {
         ...row,
@@ -59,7 +50,6 @@ class DocumentService {
       };
     });
   }
-
 
   async getDocumentEmbeddingCount(id) {
     const res = await db.query(
@@ -72,17 +62,17 @@ class DocumentService {
   async deleteDocument(id) {
     await db.query(`DELETE FROM embeddings WHERE document_id = $1`, [id]);
 
-    const res = await db.query(`SELECT filename, category FROM documents WHERE id = $1`, [id]);
+    const res = await db.query(
+      `SELECT filename, category FROM documents WHERE id = $1`,
+      [id]
+    );
+
     if (res.rows.length) {
       const filePath = path.join(documentsDir, res.rows[0].category, res.rows[0].filename);
       if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
     }
 
     await db.query(`DELETE FROM documents WHERE id = $1`, [id]);
-  }
-
-  async searchDocumentsByQuery(query, topK) {
-    return []; // unchanged
   }
 
   async processDocumentById(id) {
@@ -93,14 +83,22 @@ class DocumentService {
 
     if (!res.rows.length) throw new Error("Document not found");
 
-    const { filename, category, content } = res.rows[0];
+    const { content } = res.rows[0];
+
+    console.log(`📄 Processing document ID=${id}`);
 
     await db.query(`DELETE FROM embeddings WHERE document_id = $1`, [id]);
 
     const chunks = chunkText(content);
 
+    console.log(`✂️ Chunked document into ${chunks.length} chunks`);
+
     for (let i = 0; i < chunks.length; i++) {
-      const [embedding] = await embeddingService.generateEmbeddings([chunks[i]], "passage");
+      const [embedding] = await embeddingService.generateEmbeddings(
+        [chunks[i]],
+        "passage"
+      );
+
       const vector = toPgVector(embedding);
 
       await db.query(
@@ -110,49 +108,70 @@ class DocumentService {
       );
     }
 
+    console.log(`✅ Stored ${chunks.length} embeddings for document ID=${id}`);
     return chunks.length;
   }
-  async searchSimilar(query, topK = 15, threshold = 0.1, category = null) {
+
+  async searchSimilar(
+    query,
+    topK = Number(process.env.SEARCH_TOP_K) || 8,
+    threshold = Number(process.env.SEARCH_THRESHOLD) || 0.25,
+    category = null
+  ) {
+    console.log(`🔍 searchSimilar() called`);
+    console.log(`📝 Query: "${query}"`);
+    console.log(`⚙️ topK=${topK}, threshold=${threshold}, category=${category ?? 'ALL'}`);
+
     // 1. Generate query embedding
-    const [embedding] = await embeddingService.generateEmbeddings([query], "query");
+    const [embedding] = await embeddingService.generateEmbeddings(
+      [query],
+      "query"
+    );
+
     const vector = toPgVector(embedding);
 
-    // 2. Run pgvector similarity search
+    // 2. Vector similarity search (COSINE)
     const sql = `
-    SELECT 
-      e.document_id,
-      e.chunk_text AS text,
-      e.chunk_index,
-      d.filename,
-      1 - (e.embedding <-> $1::vector) AS similarity
-    FROM embeddings e
-    JOIN documents d ON e.document_id = d.id
-    ${category ? `WHERE d.category = $3` : ""}
-    ORDER BY e.embedding <-> $1::vector
-    LIMIT $2
-  `;
+      SELECT
+        e.document_id,
+        e.chunk_text AS text,
+        e.chunk_index,
+        d.filename,
+        1 - (e.embedding <=> $1::vector) AS similarity
+      FROM embeddings e
+      JOIN documents d ON e.document_id = d.id
+      ${category ? `WHERE d.category = $3` : ""}
+      ORDER BY e.embedding <=> $1::vector
+      LIMIT $2
+    `;
 
     const params = category ? [vector, topK, category] : [vector, topK];
-
     const result = await db.query(sql, params);
 
-    // Debug: Log top results before filtering
+    // 🔎 ORIGINAL DEBUG LOGS (KEPT)
     if (result.rows.length > 0) {
       console.log(`🔍 Found ${result.rows.length} chunks before threshold filter`);
-      console.log(`📊 Top 3 similarity scores:`, result.rows.slice(0, 3).map(r => ({
-        filename: r.filename,
-        similarity: r.similarity.toFixed(4)
-      })));
+      console.log(
+        `📊 Top 3 similarity scores:`,
+        result.rows.slice(0, 3).map(r => ({
+          filename: r.filename,
+          similarity: r.similarity.toFixed(4)
+        }))
+      );
       console.log(`🎯 Threshold: ${threshold}`);
     } else {
       console.log(`⚠️ No embeddings found in database!`);
-      // Check if embeddings table has any data
       const countResult = await db.query('SELECT COUNT(*) as count FROM embeddings');
       console.log(`📦 Total embeddings in DB: ${countResult.rows[0].count}`);
     }
 
+    // 3. Threshold filtering
     const filtered = result.rows.filter(r => r.similarity >= threshold);
-    console.log(`✅ After threshold filter: ${filtered.length} chunks`);
+
+    // ✅ NEW SUMMARY LOG (ADDED)
+    console.log(
+      `✅ searchSimilar summary → before=${result.rows.length}, after=${filtered.length}`
+    );
 
     return filtered;
   }
